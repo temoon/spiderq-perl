@@ -246,7 +246,7 @@ sub lend {
     
     my ( $self, $timeout, $mode ) = @_;
     
-    my $request = __make_int8($SQ_LEND) . __make_int32($timeout) . __make_int8($mode);
+    my $request = __make_int8($SQ_LEND) . __make_int64($timeout) . __make_int8($mode);
     my $response = $self->_zmq_send($request, -1);
     
     if ( not defined $response ) {
@@ -276,7 +276,7 @@ sub repay {
     
     my ( $self, $lend_key, $key, $value, $status ) = @_;
     
-    my $request = __make_int8($SQ_REPAY) . __make_int32($lend_key) . __make_string($key) . __make_string($value) . __make_int8($status);
+    my $request = __make_int8($SQ_REPAY) . __make_int64($lend_key) . __make_string($key) . __make_string($value) . __make_int8($status);
     my $response = $self->_zmq_send($request);
     
     if ( not defined $response ) {
@@ -294,7 +294,7 @@ sub heartbeat {
     
     my ( $self, $lend_key, $key, $timeout ) = @_;
     
-    my $request = __make_int8($SQ_HEARTBEAT) . __make_int32($lend_key) . __make_string($key) . __make_int32($timeout);
+    my $request = __make_int8($SQ_HEARTBEAT) . __make_int64($lend_key) . __make_string($key) . __make_int64($timeout);
     my $response = $self->_zmq_send($request);
     
     if ( not defined $response ) {
@@ -416,7 +416,7 @@ sub __make_int8 {
 }
 
 
-sub __make_int32 {
+sub __make_int64 {
     
     return pack 'Q>', shift;
     
