@@ -4,7 +4,7 @@
 package SpiderQ;
 
 
-use 5.14.2;
+use 5.8.8;
 use strict;
 use warnings;
 use utf8;
@@ -18,6 +18,31 @@ use Encode qw( encode decode is_utf8 );
 use ZMQ::LibZMQ3;
 use ZMQ::Constants qw( ZMQ_REQ ZMQ_LINGER ZMQ_POLLIN );
 
+
+our $VERSION = '1.0.2';
+
+
+our @EXPORT_FLAGS = qw(
+    $SQ_COUNTED
+    $SQ_ADDED
+    $SQ_KEPT
+    $SQ_UPDATED
+    $SQ_NOT_FOUND
+    $SQ_LENT
+    $SQ_REPAID
+    $SQ_HEARTBEATEN
+    $SQ_SKIPPED
+    $SQ_STATS_GOT
+    $SQ_ERROR
+    $SQ_TERMINATED
+    $SQ_VALUE_FOUND
+    $SQ_VALUE_NOT_FOUND
+    $SQ_FLUSHED
+    $SQ_QUEUE_EMPTY
+    $SQ_PONG
+    $SQ_REMOVED
+    $SQ_NOT_REMOVED
+);
 
 our @EXPORT_LEND = qw(
     $SQ_LEND_BLOCK
@@ -36,9 +61,10 @@ our @EXPORT_ADD = qw(
     $SQ_ADD_TAIL
 );
 
-our @EXPORT_OK = ( @EXPORT_LEND, @EXPORT_REPAY, @EXPORT_ADD );
+our @EXPORT_OK = ( @EXPORT_FLAGS, @EXPORT_LEND, @EXPORT_REPAY, @EXPORT_ADD );
 
 our %EXPORT_TAGS = (
+    'flags' => \@EXPORT_FLAGS,
     'lend'  => \@EXPORT_LEND,
     'repay' => \@EXPORT_REPAY,
     'add'   => \@EXPORT_ADD,
@@ -71,6 +97,7 @@ Readonly::Scalar(our $SQ_REPAID          => 0x07);
 Readonly::Scalar(our $SQ_HEARTBEATEN     => 0x08);
 Readonly::Scalar(our $SQ_SKIPPED         => 0x09);
 Readonly::Scalar(our $SQ_STATS_GOT       => 0x0A);
+Readonly::Scalar(our $SQ_ERROR           => 0x0B);
 Readonly::Scalar(our $SQ_TERMINATED      => 0x0C);
 Readonly::Scalar(our $SQ_VALUE_FOUND     => 0x0D);
 Readonly::Scalar(our $SQ_VALUE_NOT_FOUND => 0x0E);
@@ -182,11 +209,11 @@ sub add {
 }
 
 
-sub update {
+sub remove {
     
-    my ( $self, $key, $value ) = @_;
+    my ( $self, $key ) = @_;
     
-    my $request = __make_int8($SQ_UPDATE) . __make_string($key) . __make_string($value);
+    my $request = __make_int8($SQ_REMOVE) . __make_string($key);
     my $response = $self->_zmq_send($request);
     
     if ( not defined $response ) {
@@ -224,11 +251,11 @@ sub lookup {
 }
 
 
-sub remove {
+sub update {
     
-    my ( $self, $key ) = @_;
+    my ( $self, $key, $value ) = @_;
     
-    my $request = __make_int8($SQ_REMOVE) . __make_string($key);
+    my $request = __make_int8($SQ_UPDATE) . __make_string($key) . __make_string($value);
     my $response = $self->_zmq_send($request);
     
     if ( not defined $response ) {
